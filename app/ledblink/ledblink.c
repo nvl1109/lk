@@ -29,39 +29,26 @@
 #include <compiler.h>
 
 
-#if defined(WITH_LIB_CONSOLE)
-#include <lib/console.h>
-
-void ledblink(void);
-
-STATIC_COMMAND_START
-STATIC_COMMAND("ledblink", "read xyz vectors", (console_cmd)&ledblink)
-STATIC_COMMAND_END(accelerometer);
-
-#endif
 #define BLUE_LED_GPIO	GPIO(3,15)
 static char flag = 0;
 
 static enum handler_return blink_timer(timer_t *timer, lk_time_t now, void *arg) {
 	gpio_set(BLUE_LED_GPIO, (flag) ? 1 : 0);
 	flag = ~flag;
-	// printf("__blink timer: %d\n", flag);
 
 	return INT_RESCHEDULE;
 }
 
 static timer_t led_timer = TIMER_INITIAL_VALUE(led_timer);
 
-void ledblink(void)
+static void ledblink_init(const struct app_descriptor *app)
 {
 	/* Configure LED */
 	gpio_config(BLUE_LED_GPIO, GPIO_OUTPUT);
 
 	timer_set_periodic(&led_timer, 500, blink_timer, NULL);
-	printf("__blink app started\n");
 }
 
-APP_START(accelerometer)
-.flags = 0,
- APP_END
-
+APP_START(ledblink)
+.init = ledblink_init,
+  APP_END
